@@ -16,17 +16,24 @@
 </head>
 <body>
   <div class="card">
-    <h1>인증 완료 (Tesla Authorization)</h1>
-    <p>테슬라 계정 승인 코드가 수신되었습니다. 아래 코드를 복사하거나 확인하세요.</p>
+    <h1 id="heading">테슬라 로그인 확인</h1>
+    <p>이번 로그인 완료 주소를 복사해 앱의 2단계에 붙여넣으세요. 이 주소는 한 번만 사용할 수 있으며 다른 사람에게 공유하면 안 됩니다.</p>
     <div id="codeDisplay" class="code-box">확인 중…</div>
-    <button onclick="copyCode()">코드 복사하기</button>
+    <button id="copy" onclick="copyCode()" disabled>앱으로 전달할 전체 URL 복사</button>
   </div>
   <script>
     const params = new URLSearchParams(window.location.search);
-    const code = params.get('code') || params.get('access_token') || '코드가 없습니다.';
-    document.getElementById('codeDisplay').innerText = code;
-    function copyCode() {
-      navigator.clipboard.writeText(code).then(() => alert('코드가 클립보드에 복사되었습니다.'));
+    const valid = params.getAll('code').length === 1 && !!params.get('code') && params.getAll('state').length === 1 && !!params.get('state') && !params.has('error');
+    const callbackURL = window.location.href;
+    document.getElementById('heading').innerText = valid ? '로그인 승인 코드 수신됨' : '새 로그인이 필요합니다';
+    document.getElementById('codeDisplay').innerText = valid ? callbackURL : '앱의 1단계에서 다시 로그인해 주세요.';
+    document.getElementById('copy').disabled = !valid;
+    async function copyCode() {
+      if (!valid) return;
+      try {
+        await navigator.clipboard.writeText(callbackURL);
+        alert('전체 URL 복사됨. 앱의 2단계에 붙여넣으세요.');
+      } catch { alert('복사하지 못했습니다. 표시된 전체 주소를 직접 선택해 복사해 주세요.'); }
     }
   </script>
 </body>
